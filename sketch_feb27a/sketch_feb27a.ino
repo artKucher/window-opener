@@ -6,31 +6,47 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
+#include "vars.h"
+#include "Puller_new2.h"
+#include "Mqtt.h"
 #include "WindowOpener.h"
 #include "Hap.h"
+
 
 void setup() {
   Serial.begin(115200);
   
-  debugModeOn();
+  //resetSettings();
   
-  getDataFromConfig();
+  
   wifiManagerInit();
   initConnection();
   ArduinoOTA.begin();
-  
   
   Serial.println("Ready");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  initHap();
+  getDataFromConfig();
+  if (strlen(mqtt_server) != 0){
+    Serial.println("INIT MQTT ONLY");
+    ComanderInit = MqttInit;
+    ComanderLoop = MqttLoop;
+    pullerInit(5,4,13, mqtt_stop_notify, mqtt_opening_notify, mqtt_closing_notify, mqtt_set_current_position);
+  }else{
+    Serial.println("INIT HAP ONLY");
+    ComanderInit = initHap;
+    ComanderLoop = hap_homekit_loop;
+    pullerInit(5,4,13, hap_stop_notify, hap_opening_notify, hap_closing_notify, hap_set_current_position);
+  }
+  
+  ComanderInit();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   ArduinoOTA.handle();
   checkWifiConnection();
-  hap_homekit_loop();
-  update_window_state();
+  ComanderLoop();
+  pullerLoop();
 }
