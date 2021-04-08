@@ -3,6 +3,7 @@ using simpleCallback = void (*)(void);
 using parameterCallback = void (*)(int);
 
 int _current_position;
+int _target_position;
 int _current_position_steps;
 int _target_position_steps;
 int _main_pinout;
@@ -10,7 +11,7 @@ int _groud_pinout;
 bool _motion_in_progress;
 int _move_step;
 int _move_speed = 0;
-int _aceleration_period = 4;
+int _aceleration_period = 10;
 int _last_time_run;
 int _start_speed = 256;
 bool isMoving = false;
@@ -24,7 +25,6 @@ parameterCallback _current_position_notify;
 
 void ICACHE_RAM_ATTR interruptHandler(void) {
     _current_position_steps += _move_step;
-    Serial.printf("INTERRUPT");
 }
 
 void motorMoveForward(int speed){
@@ -35,8 +35,6 @@ void motorMoveForward(int speed){
 void motorMoveBackward(int speed){
   digitalWrite(_main_pinout, LOW);
   analogWrite(_groud_pinout, speed);
-  //digitalWrite(_groud_pinout, LOW);
-  //analogWrite(_main_pinout, speed);
 }
 void motorStop(){
   digitalWrite(_groud_pinout, LOW);
@@ -68,7 +66,8 @@ void pullerInit(int main_pinout,
   _target_position_steps = _current_position_steps;
   _max_position = 100;
   _max_position_steps = 900;
-  _current_position = 0;//(int)((float)_current_position_steps/(float)_max_position_steps*(float)_max_position);
+  _current_position = 0;
+  _target_position = 0;
   _move_step = 0;
 
   _stop_notify = stop_notify;
@@ -80,6 +79,7 @@ void pullerInit(int main_pinout,
 }
 
 void pullerMove(int target_position){
+  _target_position = target_position;
   if ((_move_step==1 && _current_position > target_position) ||
       (_move_step==-1 && _current_position < target_position) ){  
     _move_step = 0;
@@ -115,7 +115,7 @@ void pullerLoop(){
     motorStop();
 
     _current_position = (int)((float)_current_position_steps/(float)_max_position_steps*(float)_max_position);
-    _current_position_notify(_current_position);
+    _current_position_notify(_target_position);
     Serial.printf("Current position in steps %d in percents %d. Target pos in steps^ %d \n", _current_position_steps, _current_position, _target_position_steps);
     _stop_notify();
     return;

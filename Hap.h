@@ -10,12 +10,6 @@ extern "C"{
 #include <ESP8266WiFi.h>
 
 
-#define INFO_(message, ...) printf_P(PSTR(">>> Window covering: " message "\n"), ##__VA_ARGS__)
-#define ERROR_(message, ...) printf_P(PSTR("!!! Window covering: " message "\n"), ##__VA_ARGS__)
-
-
-const char* HOSTNAME="WindowCover";
-const int identity_led=2;
 
 homekit_service_t* service_windowcovering=NULL;
 homekit_characteristic_t * ch_current_pos= NULL;
@@ -26,14 +20,9 @@ homekit_characteristic_t * ch_hold=NULL;
 
 
 void hap_callback_process(homekit_characteristic_t *ch, homekit_value_t value, void *context) {
-
-    
-    //Serial.printf("HAP CALLBACK. Value: %d - %d, type: %s, description %s \n", value.int_value, ch->value.int_value, ch->type, ch->description);
-    
     if(!service_windowcovering || !ch_target_pos || !ch_position_state){
-       ERROR_("service/charachteristic are not defined \n");
+       Serial.printf("service/charachteristic are not defined \n");
       return;
-   
     }
 
     const char* type_tp = "7C";
@@ -71,8 +60,8 @@ void initHap(){
     disable_extra4k_at_link_time();
     init_hap_storage("/pair.dat");
     hap_setbase_accessorytype(homekit_accessory_category_window_covering);
-    hap_set_device_setupId((char*)"YK72");
-    hap_initbase_accessory_service(HOSTNAME,"Yurik72","0","EspHapLed","1.0");
+    hap_set_device_setupId((char*)device_setupId);
+    hap_initbase_accessory_service(HAP_HOSTNAME,HAP_MANUFACTURER,HAP_SERIALNUMBER,HAP_MODEL,HAP_FIRMWAREVERSION);
     service_windowcovering = hap_add_windowcovering_service("Window",hap_callback_process,0); 
     hap_init_homekit_server();
     ch_current_pos= homekit_service_characteristic_by_type(service_windowcovering, HOMEKIT_CHARACTERISTIC_CURRENT_POSITION);

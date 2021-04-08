@@ -1,13 +1,13 @@
-#include <FS.h>                   //this needs to be first, or it all crashes and burns...
+//#include <FS.h>                   //this needs to be first, or it all crashes and burns...
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
-#include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
+//#include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
 #include "vars.h"
-#include "Puller_new2.h"
+#include "Puller_new.h"
 #include "Mqtt.h"
 #include "WindowOpener.h"
 #include "Hap.h"
@@ -17,7 +17,6 @@ void setup() {
   Serial.begin(115200);
   
   //resetSettings();
-  
   
   wifiManagerInit();
   initConnection();
@@ -30,17 +29,17 @@ void setup() {
   getDataFromConfig();
   if (strlen(mqtt_server) != 0){
     Serial.println("INIT MQTT ONLY");
-    ComanderInit = MqttInit;
+    MqttInit();
     ComanderLoop = MqttLoop;
-    pullerInit(5,4,13, mqtt_stop_notify, mqtt_opening_notify, mqtt_closing_notify, mqtt_set_current_position);
+    pullerInit(4,5,2, mqtt_stop_notify, mqtt_opening_notify, mqtt_closing_notify, mqtt_set_current_position);
   }else{
     Serial.println("INIT HAP ONLY");
-    ComanderInit = initHap;
+    initHap();
     ComanderLoop = hap_homekit_loop;
-    pullerInit(5,4,13, hap_stop_notify, hap_opening_notify, hap_closing_notify, hap_set_current_position);
+    pullerInit(4,5,2, hap_stop_notify, hap_opening_notify, hap_closing_notify, hap_set_current_position);
   }
   
-  ComanderInit();
+  
 }
 
 void loop() {

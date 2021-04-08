@@ -21,7 +21,7 @@ void onMessage(char* topic, byte* payload, unsigned int length) {
 
 boolean MqttReconnect() {
   Serial.println("RECONNECT");
-  if (mqttClient.connect("WindowOpener", mqtt_login, mqtt_password)) {
+  if (mqttClient.connect(MQTT_CLIENTID, mqtt_login, mqtt_password)) {
     mqttClient.subscribe(mqtt_input_topic);
     Serial.println("Connected to Beebotte MQTT");
   }
@@ -48,7 +48,7 @@ void mqtt_set_current_position(int current_pos){
     json["ts"] = millis();
     
     JsonObject data = json.createNestedObject("data");
-    data["device_name"] = device_name;
+    data["device_name"] = MQTT_CLIENTID;
     data["type"] = "current position";
     data["data"] = current_pos;
   
@@ -65,7 +65,7 @@ void mqtt_stop_notify(){
     json["ts"] = millis();
     
     JsonObject data = json.createNestedObject("data");
-    data["device_name"] = device_name;
+    data["device_name"] = MQTT_CLIENTID;
     data["type"] = "motion status";
     data["data"] = "stopped";
   
@@ -82,7 +82,7 @@ void mqtt_opening_notify(){
     json["ts"] = millis();
     
     JsonObject data = json.createNestedObject("data");
-    data["device_name"] = device_name;
+    data["device_name"] = MQTT_CLIENTID;
     data["type"] = "motion status";
     data["data"] = "opening";
   
@@ -98,7 +98,7 @@ void mqtt_closing_notify(){
     json["ts"] = millis();
     
     JsonObject data = json.createNestedObject("data");
-    data["device_name"] = device_name;
+    data["device_name"] = MQTT_CLIENTID;
     data["type"] = "motion status";
     data["data"] = "closing";
   

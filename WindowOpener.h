@@ -16,7 +16,7 @@ void wifiManagerInit(){
 }
 
 void initConnection(){
-  if (!wifiManager.autoConnect("YmDom Window", "password")) {
+  if (!wifiManager.autoConnect(WIFI_SSID, WIFI_PASSWORD)) {
     Serial.println("failed to connect and hit timeout");
     ESP.reset();
     delay(5000);
