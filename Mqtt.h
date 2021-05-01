@@ -1,5 +1,3 @@
-#include <Arduino.h>
-#include <SPI.h>
 #include <ArduinoJson.h>
 
 int mqtt_last_value = 0;
@@ -35,9 +33,10 @@ void MqttInit(){
 }
 
 void MqttLoop(){
+  Serial.printf("MQTT status %d \n", mqttClient.state());
   if (!mqttClient.loop()) {
     MqttReconnect();
-    Serial.printf("MQTT status %d \n", mqttClient.state());
+    
   }
 }
 

@@ -1,6 +1,5 @@
-#include <Arduino.h>
-#include <WiFiManager.h> 
-#include <PubSubClient.h>
+#include "src/WiFiManager/WiFiManager.h"
+#include "src/PubSubClient/PubSubClient.h"
 
 char mqtt_server[40];
 int mqtt_port;

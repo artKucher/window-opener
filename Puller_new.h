@@ -1,10 +1,11 @@
-#include "Arduino.h"
 using simpleCallback = void (*)(void);
 using parameterCallback = void (*)(int);
 
 int _current_position;
 int _target_position;
 int _current_position_steps;
+int _previous_position_steps;
+unsigned long _previous_position_time;
 int _target_position_steps;
 int _main_pinout;
 int _groud_pinout;
@@ -12,11 +13,12 @@ bool _motion_in_progress;
 int _move_step;
 int _move_speed = 0;
 int _aceleration_period = 10;
-int _last_time_run;
+unsigned long _last_time_run;
 int _start_speed = 256;
-bool isMoving = false;
 int _max_position;
 int _max_position_steps;
+
+void deadLockCheck();
 
 simpleCallback _stop_notify;
 simpleCallback _opening_notify;
@@ -25,6 +27,7 @@ parameterCallback _current_position_notify;
 
 void ICACHE_RAM_ATTR interruptHandler(void) {
     _current_position_steps += _move_step;
+    _previous_position_time = millis();
 }
 
 void motorMoveForward(int speed){
@@ -85,7 +88,6 @@ void pullerMove(int target_position){
     _move_step = 0;
     _move_speed = 0;
     motorStop();
-    isMoving = false;
     _stop_notify();
   }
   if (_current_position == target_position){
@@ -96,35 +98,34 @@ void pullerMove(int target_position){
   }
   if (_current_position < target_position){
     _target_position_steps = (int)((float)target_position/(float)_max_position*(float)_max_position_steps);
-    Serial.printf("Target position in steps %d \n", _target_position_steps);
+    //Serial.printf("Target position in steps %d \n", _target_position_steps);
     _opening_notify();
     return;
   }
   if (_current_position > target_position){
     _target_position_steps = (int)((float)target_position/(float)_max_position*(float)_max_position_steps);
-    Serial.printf("Target position in steps %d \n", _target_position_steps);
+    //Serial.printf("Target position in steps %d \n", _target_position_steps);
     _closing_notify();
     return;
   }
 }
 
 void pullerLoop(){
-  if (_current_position_steps == _target_position_steps && _move_step != 0){
+  if (_move_step != 0 && _current_position_steps == _target_position_steps){
     _move_step = 0;
     _move_speed = 0;
     motorStop();
 
     _current_position = (int)((float)_current_position_steps/(float)_max_position_steps*(float)_max_position);
     _current_position_notify(_target_position);
-    Serial.printf("Current position in steps %d in percents %d. Target pos in steps^ %d \n", _current_position_steps, _current_position, _target_position_steps);
+    //Serial.printf("Current position in steps %d in percents %d. Target pos in steps^ %d \n", _current_position_steps, _current_position, _target_position_steps);
     _stop_notify();
     return;
   }
   if (_current_position_steps < _target_position_steps){
     _move_step = 1;
-    isMoving = true;
 
-    if (millis() - _last_time_run > _aceleration_period  && _move_speed < 1024){
+    if (_move_speed < 1024 && millis() - _last_time_run > _aceleration_period){
       _move_speed +=10;
       _move_speed = min(_move_speed, 1024);
       _last_time_run = millis();
@@ -132,28 +133,48 @@ void pullerLoop(){
     motorMoveForward(_move_speed);
     
     _current_position = (int)((float)_current_position_steps/(float)_max_position_steps*(float)_max_position);
-    _current_position_notify(_current_position);
     
     Serial.printf("Current position in steps %d in percents %d. Target pos in steps^ %d \n", _current_position_steps, _current_position, _target_position_steps);
+    deadLockCheck();
     return;
   }
   if (_current_position_steps > _target_position_steps){
     _move_step = -1;
-    isMoving = true;
 
-    if (millis() - _last_time_run > _aceleration_period  && _move_speed < 1024){
+    if (_move_speed < 1024 && millis() - _last_time_run > _aceleration_period){
       _move_speed +=10;
       _move_speed = min(_move_speed, 1024);
       _last_time_run = millis();
+
     }
     motorMoveBackward(_move_speed);
     
     _current_position = (int)((float)_current_position_steps/(float)_max_position_steps*(float)_max_position);
-    _current_position_notify(_current_position);
     
     Serial.printf("Current position in steps %d in percents %d. Target pos in steps^ %d \n", _current_position_steps, _current_position, _target_position_steps);
+    deadLockCheck();
     return;
   }
 }
 
+void deadLockCheck(){
+  if (_move_speed == 1024 && millis() - _previous_position_time >= 500 ){
+      _move_step = 0;
+      _move_speed = 0;
+      motorStop();
+      if (_target_position == 100 || _target_position == 0){
+        Serial.printf("DEAD LOCK. END OF CHAIN");
+        _current_position_notify(_target_position);
+        _current_position_steps = _target_position_steps;
+        _current_position = _target_position;
+      } else{
+        Serial.printf("DEAD LOCK. MID BLOCK");
+        _stop_notify();
+        _current_position_notify(_current_position);
+        _target_position_steps = _current_position_steps;
+        _target_position = _current_position;
+      }
+      _stop_notify();
+    }
+}
  
