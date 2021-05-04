@@ -456,11 +456,12 @@ void WiFiManager::handleRoot() {
   page += FPSTR(HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(HTTP_HEADER_END);
-  page += String(F("<h1>"));
-  page += _apName;
-  page += String(F("</h1>"));
-  page += String(F("<h3>Settings portal</h3>"));
+  page += FPSTR(HTTP_LOGO_IMAGE);
+  //page += String(F("<h3>Settings portal</h3>"));
   page += FPSTR(HTTP_PORTAL_OPTIONS);
+    page += String(F("<div style='text-align: center; margin-top: 40px; font-size: small; color: #bdbdbd'>"));
+  page += _apName;
+  page += String(F("</div>"));
   page += FPSTR(HTTP_END);
 
   server->sendHeader("Content-Length", String(page.length()));
@@ -477,6 +478,8 @@ void WiFiManager::handleWifi(boolean scan) {
   page += FPSTR(HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(HTTP_HEADER_END);
+  
+  page += FPSTR(HTTP_SCAN_LINK);
 
   if (scan) {
     int n = WiFi.scanNetworks();
@@ -554,6 +557,7 @@ void WiFiManager::handleWifi(boolean scan) {
   }
 
   page += FPSTR(HTTP_FORM_START);
+
   char parLength[5];
   // add the extra parameters to the form
   for (int i = 0; i < _paramsCount; i++) {
@@ -613,7 +617,6 @@ void WiFiManager::handleWifi(boolean scan) {
   }
 
   page += FPSTR(HTTP_FORM_END);
-  page += FPSTR(HTTP_SCAN_LINK);
 
   page += FPSTR(HTTP_END);
 
@@ -734,7 +737,7 @@ void WiFiManager::handleReset() {
   page += FPSTR(HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(HTTP_HEADER_END);
-  page += F("Module will reset in a few seconds.");
+  page += F("Модуль перезагрузится в течение нескольких секунд");
   page += FPSTR(HTTP_END);
 
   server->sendHeader("Content-Length", String(page.length()));
