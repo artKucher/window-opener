@@ -5,10 +5,11 @@
 #include <ESP8266HTTPUpdateServer.h>
 
 #include "vars.h"
-#include "Puller_new.h"
+#include "Puller.h"
 #include "Mqtt.h"
 #include "WindowOpener.h"
 #include "Hap.h"
+#include "RainDetector.h"
 
 const char* update_username = "admin";
 const char* update_password = "admin";
@@ -39,7 +40,7 @@ void setup() {
     ComanderLoop = hap_homekit_loop;
     pullerInit(4,5,12, hap_stop_notify, hap_opening_notify, hap_closing_notify, hap_set_current_position);
   }
-  
+  rainDetectorInit(A0, raindetector_wet_value, raindetector_dry_value);
   httpUpdater.setup(&httpServer, "/firmware", update_username, update_password);
   httpServer.begin();
 }
@@ -49,4 +50,5 @@ void loop() {
   ComanderLoop();
   pullerLoop();
   httpServer.handleClient();
+  rainDetectorLoop();
 }

@@ -7,6 +7,9 @@ void wifiManagerInit(){
   wifiManager.addParameter(&mqtt_password_param);
   wifiManager.addParameter(&mqtt_input_topic_param);
   wifiManager.addParameter(&mqtt_output_topic_param);
+
+  wifiManager.addParameter(&raindetector_wet_value_param);
+  wifiManager.addParameter(&raindetector_dry_value_param);
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   //sets timeout until configuration portal gets turned off
@@ -19,13 +22,11 @@ void initConnection(){
     ESP.reset();
     delay(5000);
   }
-  Serial.println("Connected to WiFi");
+  //Serial.println("Connected to WiFi");
 }
 
 void resetSettings(){
-  //reset settings - for testing
   wifiManager.resetSettings();
-  //clean FS, for testing
   SPIFFS.remove("/pair.dat");
   SPIFFS.remove("/config.json");
   SPIFFS.format();
@@ -61,6 +62,9 @@ void getDataFromConfig(){
           strcpy(mqtt_password, json["mqtt_password"]);
           strcpy(mqtt_input_topic, json["mqtt_input_topic"]);
           strcpy(mqtt_output_topic, json["mqtt_output_topic"]);
+
+          raindetector_wet_value = json["raindetector_wet_value"].as<int>();
+          raindetector_dry_value = json["raindetector_dry_value"].as<int>();
         } else {
           //Serial.println("failed to load json config");
         }
@@ -83,6 +87,9 @@ void saveConfigCallback(){
   strcpy(mqtt_password, mqtt_password_param.getValue());
   strcpy(mqtt_input_topic, mqtt_input_topic_param.getValue());
   strcpy(mqtt_output_topic, mqtt_output_topic_param.getValue());
+
+  raindetector_wet_value = String(raindetector_wet_value_param.getValue()).toInt();
+  raindetector_dry_value = String(raindetector_dry_value_param.getValue()).toInt();
   
   DynamicJsonDocument json(1024);
   json["mqtt_server"] = mqtt_server;
@@ -91,6 +98,10 @@ void saveConfigCallback(){
   json["mqtt_password"] = mqtt_password;
   json["mqtt_input_topic"] = mqtt_input_topic;
   json["mqtt_output_topic"] = mqtt_output_topic;
+
+  json["raindetector_wet_value"] = raindetector_wet_value;
+  json["raindetector_dry_value"] = raindetector_dry_value;
+  
   if (SPIFFS.begin()) {
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {

@@ -564,6 +564,9 @@ void WiFiManager::handleWifi(boolean scan) {
     if (_params[i] == NULL) {
       break;
     }
+	if (i==6){
+		page += FPSTR(HTTP_FORM_RAIN_PARAM_DISCLAIMER);
+	}
 
     String pitem = FPSTR(HTTP_FORM_PARAM);
     if (_params[i]->getID() != NULL) {
@@ -737,7 +740,7 @@ void WiFiManager::handleReset() {
   page += FPSTR(HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(HTTP_HEADER_END);
-  page += F("Модуль перезагрузится в течение нескольких секунд");
+  page += F("Настройки MQTT и cопряжения Apple HomeKit удаляться.</br> Модуль перезагрузится в течение нескольких секунд");
   page += FPSTR(HTTP_END);
 
   server->sendHeader("Content-Length", String(page.length()));
@@ -745,6 +748,7 @@ void WiFiManager::handleReset() {
 
   DEBUG_WM(F("Sent reset page"));
   delay(5000);
+  resetSettings();
   ESP.reset();
   delay(2000);
 }

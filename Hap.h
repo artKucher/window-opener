@@ -34,6 +34,8 @@ void hap_callback_process(homekit_characteristic_t *ch, homekit_value_t value, v
 
 void hap_set_current_position(int current_pos){
   //Serial.printf("SETTING CURRENT POSITION %d \n", current_pos);
+  homekit_characteristic_t * chh= homekit_service_characteristic_by_type(service_windowcovering, HOMEKIT_CHARACTERISTIC_TARGET_POSITION);
+  HAP_NOTIFY_CHANGES(int, chh, current_pos, 1)
   homekit_characteristic_t * ch= homekit_service_characteristic_by_type(service_windowcovering, HOMEKIT_CHARACTERISTIC_CURRENT_POSITION);
   HAP_NOTIFY_CHANGES(int, ch, current_pos, 1)
 }
