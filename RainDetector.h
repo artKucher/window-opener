@@ -45,7 +45,6 @@ void rainDetectorLoop(){
   if (_average <= _dry_value){
     _dryed = true;
   }
-  //Serial.println(_average);
   
   if (_average >= _wet_value && _dryed){
     pullerMove(0);

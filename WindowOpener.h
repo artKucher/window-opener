@@ -18,11 +18,9 @@ void wifiManagerInit(){
 
 void initConnection(){
   if (!wifiManager.autoConnect(WIFI_SSID, WIFI_PASSWORD)) {
-    //Serial.println("failed to connect and hit timeout");
     ESP.reset();
     delay(5000);
   }
-  //Serial.println("Connected to WiFi");
 }
 
 void resetSettings(){
@@ -36,14 +34,12 @@ void resetSettings(){
 
 void checkWifiConnection(){
   if (WiFi.waitForConnectResult() != WL_CONNECTED){
-    //Serial.println(F("WiFi is not connected"));
     ESP.reset();
     delay(5000);
   }
 }
 
 void getDataFromConfig(){
-  //Serial.println("Getting Data from config");
   if (SPIFFS.begin()) {
     if (SPIFFS.exists("/config.json")) {
       File configFile = SPIFFS.open("/config.json", "r");
@@ -65,16 +61,10 @@ void getDataFromConfig(){
 
           raindetector_wet_value = json["raindetector_wet_value"].as<int>();
           raindetector_dry_value = json["raindetector_dry_value"].as<int>();
-        } else {
-          //Serial.println("failed to load json config");
         }
         configFile.close();
       }
-    } else{
-      //Serial.println("File does not exists");
     }
-  } else {
-    //Serial.println("failed to mount FS");
   }
 }
 
@@ -104,17 +94,11 @@ void saveConfigCallback(){
   
   if (SPIFFS.begin()) {
     File configFile = SPIFFS.open("/config.json", "w");
-    if (!configFile) {
-      //Serial.println("failed to open config file for writing");
-    }
     serializeJson(json, configFile);
     configFile.close();
   }
   MqttInit();
-  //Serial.println("MQTT INITED");
   if (!MqttReconnect() && strlen(mqtt_server) != 0) {
-    //Serial.println("Failed to connect MQTT. Settings will be reseted.");
-    
     resetSettings();
     ESP.reset();
   }

@@ -116,9 +116,6 @@ void pullerLoop(){
     _move_speed = 0;
     motorStop();
 
-    
-    //Serial.printf("Current position in steps %d in percents %d. Target pos in steps^ %d \n", _current_position_steps, _current_position, _target_position_steps);
-    
     _current_position = (int)((float)_current_position_steps/(float)_max_position_steps*(float)_max_position);
     _current_position_notify(_target_position);
     _stop_notify();
@@ -136,7 +133,6 @@ void pullerLoop(){
     
     _current_position = (int)((float)_current_position_steps/(float)_max_position_steps*(float)_max_position);
     
-    //Serial.printf("Current position in steps %d in percents %d. Target pos in steps^ %d \n", _current_position_steps, _current_position, _target_position_steps);
     deadLockCheck();
     return;
   }
@@ -153,7 +149,6 @@ void pullerLoop(){
     
     _current_position = (int)((float)_current_position_steps/(float)_max_position_steps*(float)_max_position);
     
-    //Serial.printf("Current position in steps %d in percents %d. Target pos in steps^ %d \n", _current_position_steps, _current_position, _target_position_steps);
     deadLockCheck();
     return;
   }
@@ -165,12 +160,12 @@ void deadLockCheck(){
       _move_speed = 0;
       motorStop();
       if (_target_position == 100 || _target_position == 0){
-        //Serial.printf("DEAD LOCK. END OF CHAIN");
+        // DEAD LOCK. END OF CHAIN
         _current_position_notify(_target_position);
         _current_position_steps = _target_position_steps;
         _current_position = _target_position;
       } else{
-        //Serial.printf("DEAD LOCK. MID BLOCK");
+        // DEAD LOCK. MIDDLE BLOCK
         _stop_notify();
         _current_position_notify(_current_position);
         _target_position_steps = _current_position_steps;
